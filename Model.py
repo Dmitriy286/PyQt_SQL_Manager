@@ -26,6 +26,18 @@ MODEL = declarative_base(name='Model')
 # def init_db():
 #     Model.metadata.create_all(bind=engine)
 
+
+# query from a class
+results = session.query(User).filter_by(name='ed').all()
+
+# query with multiple classes, returns tuples
+results = session.query(User, Address).join('addresses').filter_by(name='ed').all()
+
+# query using orm-columns, also returns tuples
+results = session.query(User.name, User.fullname).all()
+
+
+
 def openDB(self):
     """
     Opens database connection
@@ -56,7 +68,15 @@ def add_employee():
     else:
         CONNECT_SESSION.commit()
 
-    return user.to_dict()
+    return employee.to_dict()
+
+# def delete(user_id):
+#
+#     session.delete(session.query(User).filter_by(id=user_id).all())
+#     session.delete(obj2)
+#
+#     # commit (or flush)
+#     session.commit()
 
 
 def find_employee_by_name(self):
