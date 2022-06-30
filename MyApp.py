@@ -1,5 +1,7 @@
-from PySide2 import QtWidgets, QtCore, QtSql, QtGui
+from PySide2 import QtWidgets, QtCore, QtSql, QtGui, QtSql
+
 from Form import Ui_MainWindow as ui
+
 
 
 class MyApp(QtWidgets.QWidget):
@@ -9,5 +11,17 @@ class MyApp(QtWidgets.QWidget):
 
         self.ui.setupUi()
         # self.initThreads()
+
+
+
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication()
+
+    win = MyApp()
+    win.show()
+
+    app.exec_()
 
 

@@ -9,3 +9,5 @@ PyQt SQL Manager
 3. Создать 3 модели БД
 4. Написать реквесты
 5. Привязать кнопки
+
+https://t.me/g_jobbot?start=u_habr195
