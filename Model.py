@@ -26,49 +26,11 @@ MODEL = declarative_base(name='Model')
 # def init_db():
 #     Model.metadata.create_all(bind=engine)
 
-
-# query from a class
-results = session.query(User).filter_by(name='ed').all()
-
-# query with multiple classes, returns tuples
-results = session.query(User, Address).join('addresses').filter_by(name='ed').all()
-
-# query using orm-columns, also returns tuples
-results = session.query(User.name, User.fullname).all()
-
-
-
 def openDB(self):
     """
     Opens database connection
     :return:
     """
-
-
-def create_employee():
-    person = Person('ru')
-
-    return {'name': person.first_name(),
-            'surename': person.surname(),
-            'login': '@' + person.username(mask='l_l'),
-            'password': person.password(),
-            'email': person.email(),
-            'phone': person.telephone(),
-            'register_time': datetime.now()}
-
-
-def add_employee():
-    employee = Employee(**create_employee())
-    CONNECT_SESSION.begin()
-    try:
-        CONNECT_SESSION.add(employee)
-    except:
-        CONNECT_SESSION.rollback()
-        raise
-    else:
-        CONNECT_SESSION.commit()
-
-    return employee.to_dict()
 
 # def delete(user_id):
 #
@@ -78,56 +40,47 @@ def add_employee():
 #     # commit (or flush)
 #     session.commit()
 
-
-def find_employee_by_name(self):
-
-    stmt = select(Employee).where(Employee.name.in_(["spongebob"]))
-
-    for emp in CONNECT_SESSION.scalars(stmt):
-        print(emp)
-
-def show_all_employees():
-    return [x.to_dict() for x in User.query.all()]
-
-
 class Employee(MODEL):
     __tablename__ = "employee"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(30))
-    fullname = Column(String)
-    addresses = relationship(
-        "Address", back_populates="user", cascade="all, delete-orphan"
-        )
-
-    id = Column('user_id', Integer, primary_key=True)
-    name = Column('name', String(200))
-    surname = Column('surename', String(200))
-    login = Column('login', String(200))
-    password = Column('password', String(200))
+    id = Column('id', Integer, primary_key=True)
+    active = Column('active', bool)
     email = Column('email', String(200))
-    phone = Column('phone', String(200))
-    register_time = Column('register_time', DateTime())
+    name = Column('name', String(200))
+    password = Column('password', String(200))
+    phonenumber = Column('phonenumber', String(200))
+    photo = Column('phone', String(200))
+    username = Column('username', String(200))
+    filename = Column('filename', String(200))
+
+    # addresses = relationship(
+    #     "Address", back_populates="user", cascade="all, delete-orphan"
+    #     )
+
+    # register_time = Column('register_time', DateTime())
 
     def __repr__(self):
-        return f"User(id={self.id!r}, name={self.name!r}, fullname={self.fullname!r})"
+        return f"Employee(id={self.id!r}, name={self.name!r}, username={self.username!r})"
 
     def __init__(self, **params):
-        self.name = params.get("name")
-        self.surname = params.get("surename")
-        self.login = params.get("login")
-        self.password = params.get("password")
-        self.email = params.get("email")
-        self.phone = params.get("phone")
-        self.register_time = params.get("register_time")
+        self.id = params.get('id')
+        self.active = params.get('active')
+        self.email = params.get('email')
+        self.name = params.get('name')
+        self.password = params.get('password')
+        self.phonenumber = params.get('phonenumber')
+        self.photo = params.get('photo')
+        self.username = params.get('username')
+        self.filename = params.get('filename')
 
     def to_dict(self):
-        return dict(name=self.name, surname=self.surname, login=self.login,
-                    password=self.password, email=self.email, phone=self.phone,
-                    register_time=self.register_time)
+        return dict(id=self.id, active=self.active, email=self.email,
+                    name=self.name, password=self.password, phonenumber=self.phonenumber,
+                    photo=self.photo, username=self.username, filename=self.filename)
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4, sort_keys=True, default=str)
+
 
 
 class Product(MODEL):
@@ -155,5 +108,8 @@ class ProductSubType(MODEL):
     def __repr__(self):
         return f"Address(id={self.id!r}, email_address={self.email_address!r})"
 
-init_db()
-openDB()
+
+
+
+# init_db()
+# openDB()
