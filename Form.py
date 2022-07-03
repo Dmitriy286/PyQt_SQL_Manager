@@ -7,7 +7,7 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-
+from PySide2 import QtWidgets, QtCore
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -26,6 +26,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.mainTableView = QTableView(self.centralwidget)
         self.mainTableView.setObjectName(u"mainTableView")
+        self.openDelegate = LineEditDelegate()
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -107,14 +108,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 967, 26))
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QStatusBar(MainWindow)
-        self.statusbar.setObjectName(u"statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-
         self.retranslateUi(MainWindow)
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -137,3 +130,15 @@ class Ui_MainWindow(object):
         self.createBasePB.setText(QCoreApplication.translate("MainWindow", u"Create base", None))
     # retranslateUi
 
+class LineEditDelegate(QtWidgets.QStyledItemDelegate):
+    textEdited = QtCore.Signal(QtCore.QModelIndex)
+    # selectionChanged = QtCore.Signal(QtCore.QModelIndex)
+
+    def createEditor(self, parent, option, index):
+        lineEdit = QtWidgets.QLineEdit(parent)
+        lineEdit.textEdited.connect(lambda *args, ix=index: self.textEdited.emit(ix))
+
+        return lineEdit
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)

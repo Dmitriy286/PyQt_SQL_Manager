@@ -4,7 +4,7 @@ import psycopg2
 from mimesis import Person
 from sqlalchemy import select
 
-from Model import Employee, CONNECT_SESSION
+from Model import Employee, CONNECT_SESSION, commit_session
 
 
 def create_employee():
@@ -42,19 +42,27 @@ def query_find_employee_by_name(search_name: str) -> ...: #todo какое до�
     results = CONNECT_SESSION.query(Employee).filter_by(name='ed').all()
     return results
 
+def query_find_employee_by_id(employee_id) -> ...: #todo какое должно быть возвращаемое значение
+    employee = CONNECT_SESSION.query(Employee).get(employee_id)
+    return employee
+
 def show_all_employees():
     return [x.to_dict() for x in Employee.query.all()]
 
-# def delete(user_id):
-#
-#     session.delete(session.query(User).filter_by(id=user_id).all())
-#     session.delete(obj2)
-#
-#     # commit (or flush)
-#     session.commit()
+def changeEmployee(self):
+    user = query_find_employee_by_id()
+    user.login = "@tur"
+    commit_session()
 
-# query with multiple classes, returns tuples
-results = CONNECT_SESSION.query(Employee, Role).join('addresses').filter_by(name='ed').all()
+def delete_employee(employee_id):
+    # CONNECT_SESSION.delete(CONNECT_SESSION.query(Employee).filter_by(id=employee_id).all())
+    employee_to_delete = CONNECT_SESSION.query(Employee).get(employee_id)
+    CONNECT_SESSION.delete(employee_to_delete)
+    # commit (or flush)
+    CONNECT_SESSION.commit()
 
-# query using orm-columns, also returns tuples
-results = CONNECT_SESSION.query(User.name, User.fullname).all()
+# # query with multiple classes, returns tuples
+# results = CONNECT_SESSION.query(Employee, Role).join('addresses').filter_by(name='ed').all()
+#
+# # query using orm-columns, also returns tuples
+# results = CONNECT_SESSION.query(User.name, User.fullname).all()
