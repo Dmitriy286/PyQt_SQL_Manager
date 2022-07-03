@@ -13,6 +13,9 @@ class MyApp(QtWidgets.QWidget):
         self.ui.setupUi()
         # self.initThreads()
 
+    def initSignals(self):
+
+        self.ui.mainTableView
         pb.clicked.connect(self.addNewUser)
 
 

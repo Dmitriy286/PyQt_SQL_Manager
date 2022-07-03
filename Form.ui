@@ -82,7 +82,7 @@
            <x>650</x>
            <y>10</y>
            <width>300</width>
-           <height>20</height>
+           <height>31</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -110,12 +110,12 @@
          </item>
          <item>
           <property name="text">
-           <string>Product</string>
+           <string>Customer</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>ProductSubType</string>
+           <string>Order</string>
           </property>
          </item>
         </widget>
@@ -149,8 +149,8 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>160</y>
-           <width>75</width>
+           <y>150</y>
+           <width>231</width>
            <height>31</height>
           </rect>
          </property>
@@ -161,9 +161,9 @@
         <widget class="QPlainTextEdit" name="plainTextEdit">
          <property name="geometry">
           <rect>
-           <x>90</x>
-           <y>160</y>
-           <width>151</width>
+           <x>250</x>
+           <y>150</y>
+           <width>211</width>
            <height>31</height>
           </rect>
          </property>
@@ -197,8 +197,8 @@
         <widget class="QLCDNumber" name="lcdNumber">
          <property name="geometry">
           <rect>
-           <x>340</x>
-           <y>160</y>
+           <x>480</x>
+           <y>60</y>
            <width>111</width>
            <height>31</height>
           </rect>
@@ -207,9 +207,9 @@
         <widget class="QLabel" name="label">
          <property name="geometry">
           <rect>
-           <x>260</x>
-           <y>160</y>
-           <width>71</width>
+           <x>480</x>
+           <y>30</y>
+           <width>111</width>
            <height>31</height>
           </rect>
          </property>
@@ -220,6 +220,32 @@
          </property>
          <property name="text">
           <string>Row count</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="deleteBasePB">
+         <property name="geometry">
+          <rect>
+           <x>240</x>
+           <y>30</y>
+           <width>231</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Delete base</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="createBasePB">
+         <property name="geometry">
+          <rect>
+           <x>240</x>
+           <y>60</y>
+           <width>231</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Create base</string>
          </property>
         </widget>
        </widget>
@@ -234,7 +260,7 @@
      <x>0</x>
      <y>0</y>
      <width>967</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

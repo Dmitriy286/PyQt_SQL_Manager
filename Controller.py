@@ -4,7 +4,7 @@ import psycopg2
 from mimesis import Person
 from sqlalchemy import select
 
-from .Model import Employee, CONNECT_SESSION
+from Model import Employee, CONNECT_SESSION
 
 
 def create_employee():
@@ -13,12 +13,7 @@ def create_employee():
     return {
             'name': person.name(),
             'username': '@' + person.username(mask='l_l'),
-            'active': True,
             'password': person.password(),
-            'email': person.email(),
-            'phonenumber': person.telephone(),
-            'photo': person.political_views(),
-            'filename': ""
             }
 
 def add_employee():
@@ -50,7 +45,13 @@ def query_find_employee_by_name(search_name: str) -> ...: #todo какое до�
 def show_all_employees():
     return [x.to_dict() for x in Employee.query.all()]
 
-
+# def delete(user_id):
+#
+#     session.delete(session.query(User).filter_by(id=user_id).all())
+#     session.delete(obj2)
+#
+#     # commit (or flush)
+#     session.commit()
 
 # query with multiple classes, returns tuples
 results = CONNECT_SESSION.query(Employee, Role).join('addresses').filter_by(name='ed').all()
