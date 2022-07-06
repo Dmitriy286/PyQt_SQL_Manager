@@ -13,7 +13,7 @@ def create_employee():
     return {
             'name': "",
             'username': "",
-            'password': ""
+            'password': "",
             }
 
 def add_employee():
