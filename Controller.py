@@ -8,17 +8,17 @@ from Model import Employee, CONNECT_SESSION, commit_session
 
 
 def create_employee():
-    person = Person('ru')
+    # person = Person('ru')
 
     return {
-            'name': person.name(),
-            'username': '@' + person.username(mask='l_l'),
-            'password': person.password(),
+            'name': "",
+            'username': "",
+            'password': ""
             }
 
 def add_employee():
     employee = Employee(**create_employee())
-    CONNECT_SESSION.begin()
+    # CONNECT_SESSION.begin()
     try:
         CONNECT_SESSION.add(employee)
     except:
@@ -27,7 +27,7 @@ def add_employee():
     else:
         CONNECT_SESSION.commit()
 
-    return employee.to_dict()
+    return employee
 
 def find_employee_by_name(employee_name: str) -> ...:
 

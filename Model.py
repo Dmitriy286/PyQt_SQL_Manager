@@ -39,7 +39,8 @@ class Employee(MODEL):
         self.name = params.get('name')
         self.password = params.get('password')
         self.username = params.get('username')
-        self.orders = params.get('orders')
+        # self.orders = params.get('orders')
+        self.orders = []
 
     def __repr__(self):
         return f"Employee(id={self.id!r}, name={self.name!r}, username={self.username!r})"

@@ -6,7 +6,8 @@ from sqlalchemy.engine import row
 
 from Form import Ui_MainWindow
 from Model import init_db, Employee, del_db, commit_session
-from Controller import show_all_employees, delete_employee, query_find_employee_by_id, changeEmployee
+from Controller import show_all_employees, delete_employee, query_find_employee_by_id, \
+    changeEmployee, create_employee, add_employee
 
 
 
@@ -23,14 +24,20 @@ class MyApp(QtWidgets.QMainWindow):
 
         self.initSignals()
         # self.initThreads()
+        self.temp_employee = create_employee()
+
 
     def initSignals(self):
         # self.ui.openDelegate.textEdited.connect(self.getDataFromCell)
-        self.ui.openDelegate.textEdited.connect(self.onChanged)
+        # self.ui.openDelegate.textEdited.connect(self.onChanged)
         # self.ui.openDelegate.textChanged[str].connect(self.onChanged)
         self.ui.addRowPB.clicked.connect(self.onAddRowPBClicked)
         self.ui.deleteRowPB.clicked.connect(self.onDeleteRowPBClicked)
         self.ui.savePB.clicked.connect(self.onSavePBClicked)
+        self.ui.showAllPB.clicked.connect(self.onShowAllPBClicked)
+
+    def onShowAllPBClicked(self) -> None:
+        self.loadEmployeesTable()
 
     def onChanged(self, text):
         print("onChanged")
@@ -97,11 +104,6 @@ class MyApp(QtWidgets.QMainWindow):
 
         self.ui.mainTableView.setModel(model)
 
-        self.ui.mainTableView.setItemDelegateForColumn(1, self.ui.openDelegate)
-        self.ui.mainTableView.setItemDelegateForColumn(2, self.ui.openDelegate)
-        self.ui.mainTableView.setItemDelegateForColumn(3, self.ui.openDelegate)
-        self.ui.mainTableView.setItemDelegateForColumn(4, self.ui.openDelegate)
-
         self.ui.mainTableView.horizontalHeader().setSectionsMovable(True)
         self.ui.mainTableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
@@ -113,55 +115,94 @@ class MyApp(QtWidgets.QMainWindow):
         model = self.ui.mainTableView.model()
         print(item.data(0))
         id_= model.index(item.row(), 0)
-        employee_id = int(id_.data(0))
-        employee = query_find_employee_by_id(employee_id)
-        employee.name = item.data(0)
-        commit_session()
+        if id_.data(0) != None:
+            employee_id = int(id_.data(0))
+            employee = query_find_employee_by_id(employee_id)
+            if item.column() == 1:
+                employee.name = item.data(0)
+            if item.column() == 2:
+                employee.username = item.data(0)
+            if item.column() == 3:
+                employee.password = item.data(0)
+
+        else:
+            if item.column() == 1:
+                model.setData(model.index(item.row(), item.column()), item.data(0))
+                self.temp_employee["name"] = model.index(item.row(), item.column()), item.data(0)
+            if item.column() == 2:
+                model.setData(model.index(item.row(), item.column()), item.data(0))
+                self.temp_employee["username"] = model.index(item.row(), item.column()), item.data(0)
+            if item.column() == 3:
+                model.setData(model.index(item.row(), item.column()), item.data(0))
+                self.temp_employee["password"] = model.index(item.row(), item.column()), item.data(0)
+
+            # model.submit()
+
+            print("Данные из ячейки в модели:")
+            print(model.index(item.row(), item.column()).data(0))
+
+            print("Данные из всех ячеек в модели:")
+            print(model.index(item.row(), 1).data(0))
+            print(model.index(item.row(), 2).data(0))
+            print(model.index(item.row(), 3).data(0))
+
+            print("Данные из полей временного employee:")
+            print(self.temp_employee["name"][1])
+            print(type(self.temp_employee["name"][1]))
+            print(self.temp_employee["username"][1])
+            print(self.temp_employee["password"][1])
 
 
     def onSavePBClicked(self):
-        print("Save button is working")
         model = self.ui.mainTableView.model()
         index = model.rowCount()
-        # model = self.ui.mainTableView.model()
-        # model.setData(model.index(index, 1), self.ui.mainTableView.currentIndex())
-        # self.model.setData(self.model.index(index, 2), self.ui.lineEdit_2.text())
-        self.saveDataInNewRow(self, index)
-        # self.model.submit()
-        # commit_session()
+        if model.item(index, 0) != None:
+            print("Save button is working. Change is saving")
+            commit_session()
+        else:
+            print("Save button is working. New row is saving")
+            model = self.ui.mainTableView.model()
+            index = model.rowCount()
+            self.saveDataInNewRow(index)
 
     def onAddRowPBClicked(self):
         model = self.ui.mainTableView.model()
         index = model.rowCount()
         model.insertRows(index, 1)
 
-        # model.setData(model.index(index, 1), model.index(index, 1).data(0))
-        # model.setData(model.index(index, 2), model.index(index, 2).data(0))
-        # model.setData(model.index(index, 3), model.index(index, 3).data(0))
-        # model.setData(model.index(index, 4), model.index(index, 4).data(0))
-    def saveDataInNewRow(self, index):
+    def saveDataInNewRow(self, i):
+        new_employee = add_employee()
         model = self.ui.mainTableView.model()
-        model.setData(model.index(index, 1), "test1")
-        model.setData(model.index(index, 2), "test2")
-        model.setData(model.index(index, 3), "test3")
-        model.setData(model.index(index, 4), "[]")
-        model.submitAll()
+
+        print("Данные из полей временного employee в сейвметоде:")
+        print(self.temp_employee["name"][1])
+        print(self.temp_employee["username"][1])
+        print(self.temp_employee["password"][1])
+
+        new_employee.name = self.temp_employee["name"][1]
+        new_employee.username = self.temp_employee["username"][1]
+        new_employee.password = self.temp_employee["password"][1]
+        self.temp_employee["name"] = ""
+        self.temp_employee["username"] = ""
+        self.temp_employee["password"] = ""
+        print(new_employee.name)
 
         commit_session()
         print("Adding method is working")
         self.ui.lcdNumber.display(model.rowCount())
+        self.loadEmployeesTable()
 
     def onDeleteRowPBClicked(self):
         model = self.ui.mainTableView.model()
         if self.ui.mainTableView.currentIndex().row() > -1:
             row_index = self.ui.mainTableView.currentIndex().row()
-            txt = self.model.takeItem(self.ui.mainTableView.currentIndex().row(), 0).text()
+            txt = model.takeItem(self.ui.mainTableView.currentIndex().row(), 0).text()
             id = int(txt)
             model.removeRow(row_index)
             delete_employee(id)
             self.ui.lcdNumber.display(model.rowCount())
         else:
-            QtWidgets.QMessageBox.question(self, 'Message', "Please select a row would you like to delete", QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.question(self, 'Message', "Please select a row to delete", QtWidgets.QMessageBox.Ok)
 
         commit_session()
 

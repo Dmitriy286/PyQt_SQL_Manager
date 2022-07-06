@@ -7,7 +7,7 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-from PySide2 import QtWidgets, QtCore
+
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -26,7 +26,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.mainTableView = QTableView(self.centralwidget)
         self.mainTableView.setObjectName(u"mainTableView")
-        self.openDelegate = LineEditDelegate()
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -101,6 +100,9 @@ class Ui_MainWindow(object):
         self.createBasePB = QPushButton(self.groupBox)
         self.createBasePB.setObjectName(u"createBasePB")
         self.createBasePB.setGeometry(QRect(240, 60, 231, 31))
+        self.checkBox = QCheckBox(self.groupBox)
+        self.checkBox.setObjectName(u"checkBox")
+        self.checkBox.setGeometry(QRect(250, 100, 221, 21))
 
         self.horizontalLayout_2.addWidget(self.groupBox)
 
@@ -108,6 +110,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
+
         self.retranslateUi(MainWindow)
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -128,33 +131,6 @@ class Ui_MainWindow(object):
         self.label.setText(QCoreApplication.translate("MainWindow", u"Row count", None))
         self.deleteBasePB.setText(QCoreApplication.translate("MainWindow", u"Delete base", None))
         self.createBasePB.setText(QCoreApplication.translate("MainWindow", u"Create base", None))
+        self.checkBox.setText(QCoreApplication.translate("MainWindow", u"Autocommit", None))
     # retranslateUi
 
-class LineEditDelegate(QtWidgets.QStyledItemDelegate):
-    textEdited = QtCore.Signal(QtCore.QModelIndex)
-    # textChanged = QtCore.Signal(QtCore.QCborStringResultString)
-    # textChanged = QtCore.Signal(QtCore.QStringListModel)
-
-    # selectionChanged = QtCore.Signal(QtCore.QModelIndex)
-
-    def createEditor(self, parent, option, index):
-        editor = QtWidgets.QLineEdit(parent)
-        editor.textEdited.connect(lambda *args, ix=index: self.textEdited.emit(ix))
-        # lineEdit.setFrame(False)
-        return editor
-
-    # def setEditorData(self, editor, index):
-    #     value = index.model().data(index, QtCore.Qt.EditRole)
-    #     editor. setValue(value)
-
-
-    def updateEditorGeometry(self, editor, option, index):
-        editor.setGeometry(option.rect)
-
-    def setModelData(self, editor, model, index):
-        # value = str(index.model().data(index, QtCore.Qt.EditRole))
-        value = editor.property("text")
-        model.setData(index, value, QtCore.Qt.EditRole)
-
-    # def getModelData(self, editor):
-    #     return self.createEditor().property("text")
