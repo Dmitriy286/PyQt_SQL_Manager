@@ -4,30 +4,33 @@ import psycopg2
 from mimesis import Person
 from sqlalchemy import select
 
-from Model import Employee, CONNECT_SESSION, commit_session
+from Model import Employee, Customer, Order, CONNECT_SESSION, commit_session
 
 
-def create_employee():
+def create_obj(entity: str):
     # person = Person('ru')
+    temp_obj = globals()[entity]()
+    dict_ = {}
+    for field in temp_obj.get_fields()[1:]:
+        if isinstance(getattr(temp_obj, field), list):
+            dict_[field] = []
+        else:
+            dict_[field] = ""
 
-    return {
-            'name': "",
-            'username': "",
-            'password': "",
-            }
+    return dict_
 
-def add_employee():
-    employee = Employee(**create_employee())
+def add_obj(entity):
+    obj = globals()[entity](**create_obj(entity))
     # CONNECT_SESSION.begin()
     try:
-        CONNECT_SESSION.add(employee)
+        CONNECT_SESSION.add(obj)
     except:
         CONNECT_SESSION.rollback()
         raise
     else:
         CONNECT_SESSION.commit()
 
-    return employee
+    return obj
 
 def find_employee_by_name(employee_name: str) -> ...:
 
@@ -41,21 +44,16 @@ def query_find_employee_by_name(search_name: str) -> ...: #todo какое до�
     results = CONNECT_SESSION.query(Employee).filter_by(name='ed').all()
     return results
 
-def query_find_employee_by_id(employee_id) -> ...: #todo какое должно быть возвращаемое значение
-    employee = CONNECT_SESSION.query(Employee).get(employee_id)
-    return employee
+def query_find_by_id(entity, id) -> ...: #todo какое должно быть возвращаемое значение
+    obj = CONNECT_SESSION.query(entity).get(id)
+    return obj
 
-def show_all_employees():
-    return [x.to_dict() for x in Employee.query.all()]
+def show_all(entity):
+    return [x.to_dict() for x in entity.query.all()]
 
-def changeEmployee(search_id):
-    employee = query_find_employee_by_id(search_id)
-    employee.name = "Bob"
-    commit_session()
-
-def delete_employee(employee_id):
-    employee_to_delete = CONNECT_SESSION.query(Employee).get(employee_id)
-    CONNECT_SESSION.delete(employee_to_delete)
+def delete_obj(entity, id):
+    obj_to_delete = CONNECT_SESSION.query(entity).get(id)
+    CONNECT_SESSION.delete(obj_to_delete)
     CONNECT_SESSION.commit()
 
 # # query with multiple classes, returns tuples
