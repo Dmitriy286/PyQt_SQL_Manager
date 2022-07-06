@@ -15,8 +15,6 @@ MODEL = declarative_base(name='Model')
 MODEL.query = CONNECT_SESSION.query_property()
 
 
-
-
 class Employee(MODEL):
     __tablename__ = "PyQt.employees"
 # postgres.public.employees

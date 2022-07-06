@@ -132,13 +132,29 @@ class Ui_MainWindow(object):
 
 class LineEditDelegate(QtWidgets.QStyledItemDelegate):
     textEdited = QtCore.Signal(QtCore.QModelIndex)
+    # textChanged = QtCore.Signal(QtCore.QCborStringResultString)
+    # textChanged = QtCore.Signal(QtCore.QStringListModel)
+
     # selectionChanged = QtCore.Signal(QtCore.QModelIndex)
 
     def createEditor(self, parent, option, index):
-        lineEdit = QtWidgets.QLineEdit(parent)
-        lineEdit.textEdited.connect(lambda *args, ix=index: self.textEdited.emit(ix))
+        editor = QtWidgets.QLineEdit(parent)
+        editor.textEdited.connect(lambda *args, ix=index: self.textEdited.emit(ix))
+        # lineEdit.setFrame(False)
+        return editor
 
-        return lineEdit
+    # def setEditorData(self, editor, index):
+    #     value = index.model().data(index, QtCore.Qt.EditRole)
+    #     editor. setValue(value)
+
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
+
+    def setModelData(self, editor, model, index):
+        # value = str(index.model().data(index, QtCore.Qt.EditRole))
+        value = editor.property("text")
+        model.setData(index, value, QtCore.Qt.EditRole)
+
+    # def getModelData(self, editor):
+    #     return self.createEditor().property("text")
