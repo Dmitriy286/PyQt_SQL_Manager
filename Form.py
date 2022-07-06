@@ -100,6 +100,9 @@ class Ui_MainWindow(object):
         self.createBasePB = QPushButton(self.groupBox)
         self.createBasePB.setObjectName(u"createBasePB")
         self.createBasePB.setGeometry(QRect(240, 60, 231, 31))
+        self.checkBox = QCheckBox(self.groupBox)
+        self.checkBox.setObjectName(u"checkBox")
+        self.checkBox.setGeometry(QRect(250, 100, 221, 21))
 
         self.horizontalLayout_2.addWidget(self.groupBox)
 
@@ -107,13 +110,6 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 967, 26))
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QStatusBar(MainWindow)
-        self.statusbar.setObjectName(u"statusbar")
-        MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
 
@@ -135,5 +131,6 @@ class Ui_MainWindow(object):
         self.label.setText(QCoreApplication.translate("MainWindow", u"Row count", None))
         self.deleteBasePB.setText(QCoreApplication.translate("MainWindow", u"Delete base", None))
         self.createBasePB.setText(QCoreApplication.translate("MainWindow", u"Create base", None))
+        self.checkBox.setText(QCoreApplication.translate("MainWindow", u"Autocommit", None))
     # retranslateUi
 

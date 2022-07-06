@@ -4,21 +4,21 @@ import psycopg2
 from mimesis import Person
 from sqlalchemy import select
 
-from Model import Employee, CONNECT_SESSION
+from Model import Employee, CONNECT_SESSION, commit_session
 
 
 def create_employee():
-    person = Person('ru')
+    # person = Person('ru')
 
     return {
-            'name': person.name(),
-            'username': '@' + person.username(mask='l_l'),
-            'password': person.password(),
+            'name': "",
+            'username': "",
+            'password': ""
             }
 
 def add_employee():
     employee = Employee(**create_employee())
-    CONNECT_SESSION.begin()
+    # CONNECT_SESSION.begin()
     try:
         CONNECT_SESSION.add(employee)
     except:
@@ -27,7 +27,7 @@ def add_employee():
     else:
         CONNECT_SESSION.commit()
 
-    return employee.to_dict()
+    return employee
 
 def find_employee_by_name(employee_name: str) -> ...:
 
@@ -38,23 +38,28 @@ def find_employee_by_name(employee_name: str) -> ...:
     return stmt
 
 def query_find_employee_by_name(search_name: str) -> ...: #todo какое должно быть возвращаемое значение
-    # query from a class
     results = CONNECT_SESSION.query(Employee).filter_by(name='ed').all()
     return results
+
+def query_find_employee_by_id(employee_id) -> ...: #todo какое должно быть возвращаемое значение
+    employee = CONNECT_SESSION.query(Employee).get(employee_id)
+    return employee
 
 def show_all_employees():
     return [x.to_dict() for x in Employee.query.all()]
 
-# def delete(user_id):
-#
-#     session.delete(session.query(User).filter_by(id=user_id).all())
-#     session.delete(obj2)
-#
-#     # commit (or flush)
-#     session.commit()
+def changeEmployee(search_id):
+    employee = query_find_employee_by_id(search_id)
+    employee.name = "Bob"
+    commit_session()
 
-# query with multiple classes, returns tuples
-results = CONNECT_SESSION.query(Employee, Role).join('addresses').filter_by(name='ed').all()
+def delete_employee(employee_id):
+    employee_to_delete = CONNECT_SESSION.query(Employee).get(employee_id)
+    CONNECT_SESSION.delete(employee_to_delete)
+    CONNECT_SESSION.commit()
 
-# query using orm-columns, also returns tuples
-results = CONNECT_SESSION.query(User.name, User.fullname).all()
+# # query with multiple classes, returns tuples
+# results = CONNECT_SESSION.query(Employee, Role).join('addresses').filter_by(name='ed').all()
+#
+# # query using orm-columns, also returns tuples
+# results = CONNECT_SESSION.query(User.name, User.fullname).all()
