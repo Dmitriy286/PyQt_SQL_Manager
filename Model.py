@@ -1,5 +1,6 @@
 import json
 import psycopg2
+import sqlalchemy_utils
 
 from sqlalchemy import create_engine, MetaData, UniqueConstraint
 from sqlalchemy.orm import scoped_session, sessionmaker, Session
@@ -8,7 +9,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import select
 from datetime import datetime
-from sqlalchemy import MetaData
+import sqlalchemy_utils
+
 
 from ModelAbstractClass import MyModel
 
@@ -49,10 +51,34 @@ class Employee(MODEL):
     def __repr__(self):
         return f"Employee(id={self.id!r}, name={self.name!r}, username={self.username!r})"
 
+    # def __dir__(self):
+    #     return list(self.to_dict().keys())
+
     def to_dict(self):
         return dict(id=self.id,
                     name=self.name, password=self.password,
                     username=self.username, orders=self.orders)
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True, default=str)
+
+    def get_fields(self):
+        # entity_list = sqlalchemy_utils.functions.get_tables()
+        return [i for i in self.to_dict().keys()]
+
+
+        # entity_list = metadata_obj.tables
+        # print(entity_list)
+        #
+        # entity = globals()["Employee"]
+        # print(entity.__dict__['__module__'])
+        # print(dir(entity))
+        # variables = [i for i in entity.__dict__.keys() if not callable(i)]
+        # print(variables)
+        # variables_2 = entity.__dict__.keys()
+        # print(variables_2)
+        # field_list = sqlalchemy_utils.functions.get_columns(entity)
+        # print(field_list)
 
 
 class Customer(MODEL):
@@ -83,6 +109,7 @@ class Customer(MODEL):
         self.username = params.get('username')
         self.password = params.get('password')
         self.phonenumber = params.get('phonenumber')
+        self.orders = []
         # self.reg_date = params.get('reg_date')
 
     def __repr__(self):
@@ -90,8 +117,14 @@ class Customer(MODEL):
 
     def to_dict(self):
         return dict(id=self.id, email=self.email, name=self.name, username=self.username,
-                    password=self.password, phonenumber=self.phonenumber)
+                    password=self.password, phonenumber=self.phonenumber, orders = self.orders)
                     # reg_date=self.reg_date)
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True, default=str)
+
+    def get_fields(self):
+        return [i for i in self.to_dict().keys()]
 
 
 class Order(MODEL):
@@ -128,6 +161,12 @@ class Order(MODEL):
                     customer_id=self.customer_id)
                     # reg_date=self.reg_date)
 
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True, default=str)
+
+    def get_fields(self):
+        return [i for i in self.to_dict().keys()]
+
 
 def init_db():
     MODEL.metadata.create_all(bind=ENGINE)
@@ -144,3 +183,18 @@ def openDB():
 
 def commit_session():
     CONNECT_SESSION.commit()
+
+# def get_entities():
+#     # entity_list = sqlalchemy_utils.functions.get_tables()
+#     entity_list = metadata_obj.tables
+#     print(entity_list)
+#
+#     entity = globals()["Employee"]
+#     print(entity.__dict__['__module__'])
+#     print(dir(entity))
+#     variables = [i for i in entity.__dict__.keys() if not callable(i)]
+#     print(variables)
+#     variables_2 = entity.__dict__.keys()
+#     print(variables_2)
+#     field_list = sqlalchemy_utils.functions.get_columns(entity)
+#     print(field_list)
