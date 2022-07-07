@@ -131,13 +131,13 @@ class Order(MODEL):
     __tablename__ = 'orders'
     # __table_args__ = {"schema": "PyQt"}
 
-    id = Column(Integer(), primary_key=True)
+    id = Column(Integer, primary_key=True)
     # date = Column(datetime, default=datetime.now)
     # register_time = Column('register_time', DateTime())
     employee_id = Column(Integer, ForeignKey('employees.id'))
     employee = relationship("Employee")
 
-    customer_id = Column(Integer(), ForeignKey('customers.id'))
+    customer_id = Column(Integer, ForeignKey('customers.id'))
     customer = relationship("Customer")
 
     # todo:
@@ -147,8 +147,17 @@ class Order(MODEL):
         super().__init__()
         self.id = params.get('id')
         # self.date = params.get('date')
-        self.employee_id = params.get('employee_id')
-        self.customer_id = params.get('customer_id')
+        # self.employee_id = params.get('employee_id')
+        # self.customer_id = params.get('customer_id')
+
+        self.employee_id = 0
+        self.customer_id = 0
+
+    def set_employee_id(self, employee_id: int) -> None:
+        self.employee_id = employee_id
+
+    def set_customer_id(self, customer_id: int) -> None:
+        self.customer_id = customer_id
 
     def __repr__(self):
         return f"Order(id={self.id!r}, " \
@@ -183,6 +192,10 @@ def openDB():
 
 def commit_session():
     CONNECT_SESSION.commit()
+
+def get_type(attribute_name):
+    return get_type(attribute_name)
+
 
 # def get_entities():
 #     # entity_list = sqlalchemy_utils.functions.get_tables()

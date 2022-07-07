@@ -14,14 +14,19 @@ def create_obj(entity: str):
     for field in temp_obj.get_fields()[1:]:
         if isinstance(getattr(temp_obj, field), list):
             dict_[field] = []
+        elif isinstance(getattr(temp_obj, field), int):
+            dict_[field] = 0
         else:
             dict_[field] = ""
 
     return dict_
 
-def add_obj(entity):
+def add_obj(entity: str):
     obj = globals()[entity](**create_obj(entity))
     # CONNECT_SESSION.begin()
+    return obj
+
+def save_in_base(obj):
     try:
         CONNECT_SESSION.add(obj)
     except:
@@ -29,8 +34,6 @@ def add_obj(entity):
         raise
     else:
         CONNECT_SESSION.commit()
-
-    return obj
 
 def find_employee_by_name(employee_name: str) -> ...:
 

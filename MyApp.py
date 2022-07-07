@@ -1,4 +1,5 @@
 from typing import List
+import time
 
 from PySide2 import QtWidgets, QtCore, QtSql, QtGui, QtSql
 from PySide2.QtGui import QStandardItem, Qt
@@ -7,12 +8,14 @@ from sqlalchemy import column
 from sqlalchemy.engine import row
 
 from Form import Ui_MainWindow
-from Model import init_db, Employee, Customer, Order, del_db, commit_session
+from Model import init_db, Employee, Customer, Order, del_db, commit_session, get_type
 from Controller import delete_obj, \
-    create_obj, add_obj, show_all, query_find_by_id
+    create_obj, add_obj, show_all, query_find_by_id, save_in_base
+# from SecondThread import SecondaryTable
 
 
 class MyApp(QtWidgets.QMainWindow):
+    current_secondary_table_name = None
 
     def __init__(self, parent=None):
         super(MyApp, self).__init__(parent)
@@ -22,12 +25,17 @@ class MyApp(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.entity = None
+        self.secondary_table_entity = None
         self.loadMainTable()
 
+        self.initThreads()
         self.initSignals()
+
         # self.initThreads()
         # self.temp_obj = create_obj()
         self.temp_obj = {}
+
+
 
 
     def initSignals(self):
@@ -35,7 +43,70 @@ class MyApp(QtWidgets.QMainWindow):
         self.ui.deleteRowPB.clicked.connect(self.onDeleteRowPBClicked)
         self.ui.savePB.clicked.connect(self.onSavePBClicked)
         self.ui.showAllPB.clicked.connect(self.onShowAllPBClicked)
+
+        # self.ui.comboBox.currentTextChanged.connect(self.first_thread_start_stop)
         self.ui.comboBox.currentTextChanged.connect(self.loadMainTable)
+
+        # self.threadOne.mysignal.connect(self.setPlainTextEditConsole, QtCore.Qt.AutoConnection)
+        self.threadTwo.mysignal.connect(self.setPlainTextEditConsole, QtCore.Qt.AutoConnection)
+        self.threadTwo.mysignal.connect(self.load_secondary_table, QtCore.Qt.AutoConnection)
+
+        # self.threadOne.started.connect(self.start..)
+        # self.threadOne.finished.connect(self.stop...)
+
+        self.ui.mainTableView.clicked.connect(self.second_thread_start_stop)
+
+    def initThreads(self):
+        # self.threadOne = MainTable()
+        self.threadTwo = SecondaryTable()
+
+        # self.threadOne.start()
+
+    def setPlainTextEditConsole(self, text):
+        self.ui.plainTextEditConsole.clear()
+        self.ui.plainTextEditConsole.appendPlainText(text)
+
+    # def first_thread_start_stop(self):
+    #     self.threadOne.stop()
+    #     self.setLineEditText("First thread is stopped")
+    #     time.sleep(2)
+    #     self.setLineEditText("Starting first thread")
+    #     self.threadOne.start()
+
+    def second_thread_start_stop(self, item: QtCore.QModelIndex):
+        if "employee_id" in self.define_fields(self.ui.comboBox.currentText()) \
+        and "customer_id" in self.define_fields(self.ui.comboBox.currentText()):
+            print(self.define_fields(self.ui.comboBox.currentText()))
+            print(self.define_fields(self.ui.comboBox.currentText()).index("employee_id"))
+            print(item.column())
+            if item.column() == self.define_fields(self.ui.comboBox.currentText()).index("employee_id"):
+                self.threadTwo.entity = globals()["Employee"]
+                self.stopSecondThread()
+                self.setPlainTextEditConsole("Second thread is stopped")
+                # time.sleep(2)
+                self.setPlainTextEditConsole("Starting second thread")
+                self.start_thread_two("Employee")
+
+            elif item.column() == self.define_fields(self.ui.comboBox.currentText()).index("customer_id"):
+                self.threadTwo.entity = globals()["Customer"]
+                self.stopSecondThread()
+                self.setPlainTextEditConsole("Second thread is stopped")
+                # time.sleep(2)
+                self.setPlainTextEditConsole("Starting second thread")
+                self.start_thread_two("Customer")
+
+            else:
+                self.setPlainTextEditConsole("Связанная сущность к текущей колонке отсутствует")
+
+        else:
+            self.setPlainTextEditConsole("В текущей таблице нет внешних ключей")
+
+    def start_thread_two(self, e):
+        self.secondary_table_entity = globals()[e]
+        self.threadTwo.start()
+
+    def stopSecondThread(self):
+        self.threadTwo.status = False
 
     def onShowAllPBClicked(self) -> None:
         self.loadMainTable(self.entity)
@@ -54,15 +125,6 @@ class MyApp(QtWidgets.QMainWindow):
     #                 self.write_text(indexes[0])
     #     return super(MyApp, self).eventFilter(obj, event)
 
-    def getDataFromCell(self, selected_cell):
-        row = selected_cell.row()
-        column = selected_cell.column()
-        text = self.model.item(row, column).text()
-        id = int(text)
-        print(id)
-        model = self.ui.mainTableView.model()
-        # commit_session()
-
     def define_fields(self, entity: str) -> List:
         entity = globals()[entity]()
         return entity.get_fields()
@@ -78,10 +140,6 @@ class MyApp(QtWidgets.QMainWindow):
         model.setRowCount(len(data))
 
         for row, obj in enumerate(data):
-            # if obj["orders"] == None:
-            #     o = "-"
-            # else:
-            #     o = str([id for id in employee["orders"]])
             for index, field in enumerate(headers):
                 model.setItem(row, index, QtGui.QStandardItem(str(obj[field])))
 
@@ -90,17 +148,35 @@ class MyApp(QtWidgets.QMainWindow):
             # model.setItem(row, 3, QtGui.QStandardItem(obj["password"]))
             # model.setItem(row, 4, QtGui.QStandardItem(o))
 
-
         self.ui.mainTableView.setModel(model)
 
         self.ui.mainTableView.horizontalHeader().setSectionsMovable(True)
         self.ui.mainTableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
+        self.setPlainTextEditConsole(f"{self.ui.comboBox.currentText()} table loaded")
         self.ui.lcdNumber.display(model.rowCount())
 
         model.dataChanged.connect(self.mainTableViewDataChanged)
 
-    def mainTableViewDataChanged(self, item):
+    def load_secondary_table(self):
+        model = QtGui.QStandardItemModel()
+        self.ui.secondaryTableView.setModel(model)
+
+        headers = ['id', 'name']
+
+        model.setHorizontalHeaderLabels(headers)
+
+        data = show_all(self.secondary_table_entity)
+        model.setRowCount(len(data))
+
+        for row, obj in enumerate(data):
+            model.setItem(row, 0, QtGui.QStandardItem(str(obj["id"])))
+            model.setItem(row, 1, QtGui.QStandardItem(obj["name"]))
+
+        self.ui.secondaryTableView.horizontalHeader().setSectionsMovable(True)
+        self.ui.secondaryTableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+    def mainTableViewDataChanged(self, item: QtCore.QModelIndex):
         model = self.ui.mainTableView.model()
         print(item.data(0))
 
@@ -108,47 +184,39 @@ class MyApp(QtWidgets.QMainWindow):
 
         if id_.data(0) != None:
             obj_id = int(id_.data(0))
+            temp_obj = create_obj(self.ui.comboBox.currentText())
             obj = query_find_by_id(self.entity, obj_id)
             for index, field in enumerate(obj.get_fields()):
-                if item.column() == index + 1:
-                    obj.property[field] = item.data(0)
-        else:
-            # self.temp_obj = create_obj(globals()[self.ui.comboBox.currentText()]())
+                if item.column() == index:
+                    if isinstance(temp_obj[field], int):
+                        setattr(obj, field, int(item.data(0)))
+                    else:
+                        setattr(obj, field, item.data(0))
 
+            if self.ui.checkBox.setChecked():
+                commit_session()
+
+        else:
             for index, field in enumerate(self.define_fields(self.ui.comboBox.currentText())):
                 if item.column() == index:
                     model.setData(model.index(item.row(), item.column()), item.data(0))
                     # self.temp_obj.property[field] = item.data(0)
-                    self.temp_obj[field] = item.data(0)
+                    if isinstance(self.temp_obj[field], int):
+                        self.temp_obj[field] = int(item.data(0))
+                    else:
+                        self.temp_obj[field] = item.data(0)
 
             # model.submit()
 
-            # print("Данные из ячейки в модели:")
-            # print(model.index(item.row(), item.column()).data(0))
-            #
-            # print("Данные из всех ячеек в модели:")
-            # print(model.index(item.row(), 1).data(0))
-            # print(model.index(item.row(), 2).data(0))
-            # print(model.index(item.row(), 3).data(0))
-            #
-            # print("Данные из полей временного объекта:")
-            # print(self.temp_obj["name"])
-            # print(type(self.temp_obj["name"]))
-            # print(self.temp_obj["username"][1])
-            # print(self.temp_obj["password"][1])
-
-
     def onSavePBClicked(self):
         model = self.ui.mainTableView.model()
-        index = model.rowCount()
+        index = model.rowCount() - 1
         if model.item(index, 0) != None:
             print("Save button is working. Change is saving")
             commit_session()
         else:
             print("Save button is working. New row is saving")
-            model = self.ui.mainTableView.model()
-            index = model.rowCount()
-            self.saveDataInNewRow(index)
+            self.saveDataInNewRow()
 
     def onAddRowPBClicked(self):
         model = self.ui.mainTableView.model()
@@ -156,24 +224,19 @@ class MyApp(QtWidgets.QMainWindow):
         model.insertRows(index, 1)
         self.temp_obj = create_obj(self.ui.comboBox.currentText())
 
-    def saveDataInNewRow(self, i):
+    def saveDataInNewRow(self):
+        print(self.temp_obj)
         new_obj = add_obj(self.ui.comboBox.currentText())
+        print(new_obj)
         model = self.ui.mainTableView.model()
 
-        # print("Данные из полей временного employee в сейвметоде:")
-        # print(self.temp_employee["name"][1])
-        # print(self.temp_employee["username"][1])
-        # print(self.temp_employee["password"][1])
-
         for str_key, value in self.temp_obj.items():
-            # field = str_field.strip()
-            # field = trim(str_field, , '"')
-            setattr(new_obj, str_key, value)
-            # new_obj.field = self.temp_obj[str_field]
+            if isinstance(value, int):
+                setattr(new_obj, str_key, int(value))
+            else:
+                setattr(new_obj, str_key, value)
 
-        for index, str_field in enumerate(self.temp_obj.keys()):
-            self.temp_obj[str_field] = ""
-
+        save_in_base(new_obj)
         commit_session()
         print("Adding method is working")
         self.ui.lcdNumber.display(model.rowCount())
@@ -196,7 +259,34 @@ class MyApp(QtWidgets.QMainWindow):
         print("Delete method works")
         self.ui.lcdNumber.display(model.rowCount())
 
+# class MainTable(QtCore.QThread):
+#     mysignal = QtCore.Signal(str)
+#
+#     def __init__(self, parent=None):
+#         super(MainTable, self).__init__(parent)
+#         self.entity = None
+#
+#     def run(self):
+#         MyApp.loadMainTable()
+#
+#         self.mysignal.emit("First thread started. Main table is loading...")
 
+class SecondaryTable(QtCore.QThread):
+    mysignal = QtCore.Signal(str)
+
+    def __init__(self, parent=None):
+        super(SecondaryTable, self).__init__(parent)
+
+    def run(self):
+        self.status = True
+        count = 5
+        while self.status:
+            time.sleep(2)
+            self.mysignal.emit(f"Загрузка второй таблицы: {count}")
+            count -= 1
+            if count == -1:
+                self.mysignal.emit("Вторая таблица загружена")
+                break
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication()
