@@ -1,33 +1,41 @@
+from typing import List
+
 import sqlalchemy
 import psycopg2
 
 from mimesis import Person
 from sqlalchemy import select
 
-from Model import Employee, CONNECT_SESSION, commit_session
+from Model import Employee, Customer, Order, CONNECT_SESSION, commit_session
 
 
-def create_employee():
+def create_obj(entity: str):
     # person = Person('ru')
+    temp_obj = globals()[entity]()
+    dict_ = {}
+    for field in temp_obj.get_fields()[1:]:
+        if isinstance(getattr(temp_obj, field), list):
+            dict_[field] = []
+        elif isinstance(getattr(temp_obj, field), int):
+            dict_[field] = 0
+        else:
+            dict_[field] = ""
 
-    return {
-            'name': "",
-            'username': "",
-            'password': ""
-            }
+    return dict_
 
-def add_employee():
-    employee = Employee(**create_employee())
+def add_obj(entity: str):
+    obj = globals()[entity](**create_obj(entity))
     # CONNECT_SESSION.begin()
+    return obj
+
+def save_in_base(obj):
     try:
-        CONNECT_SESSION.add(employee)
+        CONNECT_SESSION.add(obj)
     except:
         CONNECT_SESSION.rollback()
         raise
     else:
         CONNECT_SESSION.commit()
-
-    return employee
 
 def find_employee_by_name(employee_name: str) -> ...:
 
@@ -37,25 +45,21 @@ def find_employee_by_name(employee_name: str) -> ...:
         print(emp)
     return stmt
 
-def query_find_employee_by_name(search_name: str) -> ...: #todo какое должно быть возвращаемое значение
-    results = CONNECT_SESSION.query(Employee).filter_by(name='ed').all()
-    return results
+def query_find_employee_by_name(search_name: str) -> List: #todo какое должно быть возвращаемое значение
+    result = CONNECT_SESSION.query(Employee).filter_by(name=search_name).all()
 
-def query_find_employee_by_id(employee_id) -> ...: #todo какое должно быть возвращаемое значение
-    employee = CONNECT_SESSION.query(Employee).get(employee_id)
-    return employee
+    return [x.to_dict() for x in result]
 
-def show_all_employees():
-    return [x.to_dict() for x in Employee.query.all()]
+def query_find_by_id(entity, id) -> ...: #todo какое должно быть возвращаемое значение
+    obj = CONNECT_SESSION.query(entity).get(id)
+    return obj
 
-def changeEmployee(search_id):
-    employee = query_find_employee_by_id(search_id)
-    employee.name = "Bob"
-    commit_session()
+def show_all(entity):
+    return [x.to_dict() for x in entity.query.all()]
 
-def delete_employee(employee_id):
-    employee_to_delete = CONNECT_SESSION.query(Employee).get(employee_id)
-    CONNECT_SESSION.delete(employee_to_delete)
+def delete_obj(entity, id):
+    obj_to_delete = CONNECT_SESSION.query(entity).get(id)
+    CONNECT_SESSION.delete(obj_to_delete)
     CONNECT_SESSION.commit()
 
 # # query with multiple classes, returns tuples
