@@ -1,16 +1,14 @@
-from typing import List
+from typing import List, Optional, Union
 import time
 
-from PySide2 import QtWidgets, QtCore, QtSql, QtGui, QtSql
-from PySide2.QtGui import QStandardItem, Qt
-from PySide2.QtSql import QSqlTableModel
-from sqlalchemy import column
-from sqlalchemy.engine import row
+from PySide2 import QtWidgets, QtCore, QtGui
 
-from Form import Ui_MainWindow
-from Model import init_db, Employee, Customer, Order, del_db, commit_session, get_type
+from ui.Form import Ui_MainWindow
+from Model import init_db, commit_session, Employee, Customer, Order
 from Controller import delete_obj, \
-    create_obj, add_obj, show_all, query_find_by_id, save_in_base
+    create_obj, add_obj, show_all, query_find_by_id, save_in_base, query_find_employee_by_name
+
+
 # from SecondThread import SecondaryTable
 
 
@@ -26,7 +24,7 @@ class MyApp(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.entity = None
         self.secondary_table_entity = None
-        self.loadMainTable()
+        self.loadMainTable(None)
 
         self.initThreads()
         self.initSignals()
@@ -35,14 +33,12 @@ class MyApp(QtWidgets.QMainWindow):
         # self.temp_obj = create_obj()
         self.temp_obj = {}
 
-
-
-
     def initSignals(self):
         self.ui.addRowPB.clicked.connect(self.onAddRowPBClicked)
         self.ui.deleteRowPB.clicked.connect(self.onDeleteRowPBClicked)
         self.ui.savePB.clicked.connect(self.onSavePBClicked)
         self.ui.showAllPB.clicked.connect(self.onShowAllPBClicked)
+        self.ui.findPB.clicked.connect(self.onFindPBClicked)
 
         # self.ui.comboBox.currentTextChanged.connect(self.first_thread_start_stop)
         self.ui.comboBox.currentTextChanged.connect(self.loadMainTable)
@@ -55,6 +51,11 @@ class MyApp(QtWidgets.QMainWindow):
         # self.threadOne.finished.connect(self.stop...)
 
         self.ui.mainTableView.clicked.connect(self.second_thread_start_stop)
+        #
+        # self.ui.deleteRowPB.installEventFilter(self)
+        # self.ui.addRowPB.installEventFilter(self)
+
+        self.ui.mainTableView.installEventFilter(self)
 
     def initThreads(self):
         # self.threadOne = MainTable()
@@ -109,44 +110,29 @@ class MyApp(QtWidgets.QMainWindow):
         self.threadTwo.status = False
 
     def onShowAllPBClicked(self) -> None:
-        self.loadMainTable(self.entity)
-
-    # def write_text(self, index):
-    #     row, column, cell_value = index.row(), index.column(), index.data()
-    #     print("Row {}, Column {} clicked - value: {}".format(row, column, cell_value))
-    #     self.ui.lineEdit.setText("%s" % cell_value)
-    #     self.ui.mainTableView.close()
-    #
-    # def eventFilter(self, obj, event):
-    #     if obj is self.ui.mainTableView and event.type() == QtCore.QEvent.KeyPress:
-    #         if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-    #             indexes = self.ui.mainTableView.selectedIndexes()
-    #             if indexes:
-    #                 self.write_text(indexes[0])
-    #     return super(MyApp, self).eventFilter(obj, event)
+        self.loadMainTable(None)
 
     def define_fields(self, entity: str) -> List:
         entity = globals()[entity]()
         return entity.get_fields()
 
-    def loadMainTable(self):
+    def loadMainTable(self, data_list: Union[List, int, None]):
         self.entity = globals()[self.ui.comboBox.currentText()]
 
         headers = self.define_fields(self.ui.comboBox.currentText())
         model = QtGui.QStandardItemModel()
         model.setHorizontalHeaderLabels(headers)
-
-        data = show_all(self.entity)
+        print(f"Данные, поступающие в метод загрузки таблицы: {data_list}")
+        if data_list is None or isinstance(data_list, str):
+            data = show_all(self.entity)
+        else:
+            data = data_list
         model.setRowCount(len(data))
-
+        print(f"Данные, поступающие в таблицу: {data}")
         for row, obj in enumerate(data):
             for index, field in enumerate(headers):
                 model.setItem(row, index, QtGui.QStandardItem(str(obj[field])))
 
-            # model.setItem(row, 1, QtGui.QStandardItem(obj[field]))
-            # model.setItem(row, 2, QtGui.QStandardItem(obj["username"]))
-            # model.setItem(row, 3, QtGui.QStandardItem(obj["password"]))
-            # model.setItem(row, 4, QtGui.QStandardItem(o))
 
         self.ui.mainTableView.setModel(model)
 
@@ -240,15 +226,15 @@ class MyApp(QtWidgets.QMainWindow):
         commit_session()
         print("Adding method is working")
         self.ui.lcdNumber.display(model.rowCount())
-        self.loadMainTable()
+        self.loadMainTable(None)
 
     def onDeleteRowPBClicked(self):
         model = self.ui.mainTableView.model()
         if self.ui.mainTableView.currentIndex().row() > -1:
             row_index = self.ui.mainTableView.currentIndex().row()
-            txt = model.takeItem(self.ui.mainTableView.currentIndex().row(), 0).text()
-            id = int(txt)
             model.removeRow(row_index)
+            txt = model.takeItem(self.ui.mainTableView.currentIndex().row(), 0).text() #todo проверка на непустую строку
+            id = int(txt)
             delete_obj(self.entity, id)
             self.ui.lcdNumber.display(model.rowCount())
         else:
@@ -258,6 +244,36 @@ class MyApp(QtWidgets.QMainWindow):
 
         print("Delete method works")
         self.ui.lcdNumber.display(model.rowCount())
+
+    def onFindPBClicked(self):
+        self.setPlainTextEditConsole(f"Текущая сущность: {self.ui.plainTextEdit.toPlainText()}")
+        time.sleep(2)
+        data = query_find_employee_by_name(self.ui.plainTextEdit.toPlainText())
+        self.setPlainTextEditConsole(f"Список найденных по имени ({data})")
+        time.sleep(2)
+        self.loadMainTable(data)
+
+    def event(self, event: QtCore.QEvent) -> bool:
+        pass
+
+        return QtWidgets.QWidget.event(self, event)
+
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent):
+        if watched == self.ui.mainTableView and event.type() == QtCore.QEvent.KeyPress:
+            print(f"key {event.text()} pressed")
+            print(event.type())
+            if event.key() == QtCore.Qt.Key_Delete:
+                self.onDeleteRowPBClicked()
+                print(event.text())
+
+        if watched == self.ui.mainTableView and event.type() == QtCore.QEvent.KeyPress:
+            print(f"key {event.text()} pressed")
+            print(event.type())
+            if event.key() == QtCore.Qt.Key_Plus:
+                self.onAddRowPBClicked()
+                print(event.text())
+
+        return super(MyApp, self).eventFilter(watched, event)
 
 # class MainTable(QtCore.QThread):
 #     mysignal = QtCore.Signal(str)
@@ -276,12 +292,19 @@ class SecondaryTable(QtCore.QThread):
 
     def __init__(self, parent=None):
         super(SecondaryTable, self).__init__(parent)
+        # self.params = None #todo сеттер
+        #
+        # self.db_model_obj = None
 
     def run(self):
+
+        # self.db_model_obj.filter...
+
         self.status = True
         count = 5
         while self.status:
             time.sleep(2)
+            # fetch all -> emit
             self.mysignal.emit(f"Загрузка второй таблицы: {count}")
             count -= 1
             if count == -1:
@@ -295,5 +318,7 @@ if __name__ == "__main__":
     win.show()
 
     app.exec_()
+
+    print(Employee, Customer, Order)
 
 
