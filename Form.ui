@@ -197,8 +197,8 @@
         <widget class="QLCDNumber" name="lcdNumber">
          <property name="geometry">
           <rect>
-           <x>480</x>
-           <y>60</y>
+           <x>530</x>
+           <y>150</y>
            <width>111</width>
            <height>31</height>
           </rect>
@@ -207,9 +207,9 @@
         <widget class="QLabel" name="label">
          <property name="geometry">
           <rect>
-           <x>480</x>
-           <y>30</y>
-           <width>111</width>
+           <x>470</x>
+           <y>150</y>
+           <width>51</width>
            <height>31</height>
           </rect>
          </property>
@@ -219,7 +219,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Row count</string>
+          <string>Rows:</string>
          </property>
         </widget>
         <widget class="QPushButton" name="deleteBasePB">
@@ -259,6 +259,16 @@
          </property>
          <property name="text">
           <string>Autocommit</string>
+         </property>
+        </widget>
+        <widget class="QPlainTextEdit" name="plainTextEditConsole">
+         <property name="geometry">
+          <rect>
+           <x>480</x>
+           <y>30</y>
+           <width>161</width>
+           <height>111</height>
+          </rect>
          </property>
         </widget>
        </widget>
