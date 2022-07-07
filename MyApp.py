@@ -193,7 +193,7 @@ class MyApp(QtWidgets.QMainWindow):
                     else:
                         setattr(obj, field, item.data(0))
 
-            if self.ui.checkBox.setChecked():
+            if self.ui.checkBox.isChecked():
                 commit_session()
 
         else:
