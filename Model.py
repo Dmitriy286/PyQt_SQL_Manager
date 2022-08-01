@@ -11,17 +11,17 @@ from sqlalchemy import select
 from datetime import datetime
 import sqlalchemy_utils
 
-
 from ModelAbstractClass import MyModel
+from PyQtMetaClass import DeclarativeABCMeta
 
 metadata_obj = MetaData(schema="PyQt")
 ENGINE = create_engine("postgresql+psycopg2://postgres:admin@localhost:5432/postgres", echo=True, future=True)
 CONNECT_SESSION = scoped_session(sessionmaker(autocommit=False, autoflush=False,bind=ENGINE))
-MODEL = declarative_base(metadata=metadata_obj, name='Model')
+MODEL = declarative_base(metadata=metadata_obj, name='MODEL', metaclass=DeclarativeABCMeta)
 MODEL.query = CONNECT_SESSION.query_property()
 
 
-class Employee(MODEL):
+class Employee(MODEL, MyModel):
     """
     to_json method is not an abstract, is not implemented in current class
     """
@@ -81,7 +81,7 @@ class Employee(MODEL):
         # print(field_list)
 
 
-class Customer(MODEL):
+class Customer(MODEL, MyModel):
     __tablename__ = "customers"
     # __table_args__ = {"schema": "PyQt"}
 
@@ -127,7 +127,7 @@ class Customer(MODEL):
         return [i for i in self.to_dict().keys()]
 
 
-class Order(MODEL):
+class Order(MODEL, MyModel):
     __tablename__ = 'orders'
     # __table_args__ = {"schema": "PyQt"}
 

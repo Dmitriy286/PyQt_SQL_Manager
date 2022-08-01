@@ -32,6 +32,10 @@ class MyApp(QtWidgets.QMainWindow):
         # self.initThreads()
         # self.temp_obj = create_obj()
         self.temp_obj = {}
+        o = Employee()
+        setattr(o, 'id', 100)
+        print(o.__dict__)
+        print(o.__dict__['id'])
 
     def initSignals(self):
         self.ui.addRowPB.clicked.connect(self.onAddRowPBClicked)
@@ -319,6 +323,6 @@ if __name__ == "__main__":
 
     app.exec_()
 
-    print(Employee, Customer, Order)
+
 
 

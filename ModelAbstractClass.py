@@ -5,10 +5,6 @@ from abc import ABC, abstractmethod
 class MyModel(ABC):
 
     @abstractmethod
-    def __iter__(self, **params):
-        pass
-
-    @abstractmethod
     def __repr__(self):
         pass
 
